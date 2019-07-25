@@ -1,6 +1,8 @@
 const Generator = require('yeoman-generator');
 const yosay = require('yosay');
 
+// * yeoman docs can be found here https://yeoman.github.io/generator/index.html
+
 module.exports = class extends Generator {
   constructor(args, opts) {
     // Calling the super constructor is important so our generator is correctly set up
@@ -89,14 +91,6 @@ module.exports = class extends Generator {
       return appName.toLowerCase();
     }
 
-    this.setUpVsCodeFiles = function () {
-      this.fs.copy(
-        this.templatePath('./.vscode/'),
-        this.destinationPath('./.vscode/'),
-        { appName: this.answers.appName }
-      );
-    }
-
     // ! end helper functions
   }
 
@@ -110,30 +104,37 @@ module.exports = class extends Generator {
       formattedName = await this.promptUntilValidName();
       formattingOk = await this.isFormattingOk(formattedName);
     } while (!formattingOk);
+
+    this.answers.appName = formattedName;
   }
 
   writing() {
 
-    // this.fs.copyTpl(
-    //   this.sourceRoot(),
-    //   this.destinationRoot(),
-    //   { appName: this.answers.appName }
-    // );
+    this.fs.copyTpl(
+      this.sourceRoot(),
+      this.destinationRoot(),
+      { appName: this.answers.appName }
+    );
 
-    // // Copy all dotfiles
-    // this.fs.copy(
-    //   this.templatePath('./.*'),
-    //   this.destinationRoot(),
-    //   { appName: this.answers.appName }
-    // );
+    // Copy all dotfiles
+    this.fs.copy(
+      this.templatePath('./.*'),
+      this.destinationRoot(),
+      { appName: this.answers.appName }
+    );
 
-    // this.setUpVsCodeFiles();
+    // For some reason, the .vscode files don't copy unless you do it explicitly. Probably user error but code below works
+    this.fs.copy(
+      this.templatePath('./.vscode/'),
+      this.destinationPath('./.vscode/')
+    );
   }
 
   install() {
-    // this.spawnCommandSync('dotnet', ['build']);
-    // this.spawnCommandSync('npm', ['install'], { cwd: './ClientApp' });
-    // this.spawnCommandSync('ng', ['build'], { cwd: './ClientApp' });
-    // this.spawnCommandSync('code', ['.']);
+    this.spawnCommandSync('npm', ['install']);
+    this.spawnCommandSync('git', ['init']);
+    this.spawnCommandSync('git', ['add', '.']);
+    this.spawnCommandSync('git', ['commit', '-m', 'initial commit from Yeoman generator']);
+    this.spawnCommandSync('code', ['.', '-g', 'README.md']);
   }
 };
